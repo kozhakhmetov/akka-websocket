@@ -4,7 +4,7 @@
 		module="darinternship_2.12"
 		revision="0.1"
 		status="integration"
-		publication="20190408201120"
+		publication="20190417135548"
 	>
 		<description>
 		DARInternship
@@ -35,5 +35,6 @@
 		<dependency org="com.typesafe.akka" name="akka-http_2.12" rev="10.1.8" conf="compile->default(compile)"/>
 		<dependency org="com.typesafe.akka" name="akka-stream_2.12" rev="2.5.19" conf="compile->default(compile)"/>
 		<dependency org="com.rabbitmq" name="amqp-client" rev="5.7.0" conf="compile->default(compile)"/>
+		<dependency org="io.spray" name="spray-json_2.12" rev="1.3.5" conf="compile->default(compile)"/>
 	</dependencies>
 </ivy-module>

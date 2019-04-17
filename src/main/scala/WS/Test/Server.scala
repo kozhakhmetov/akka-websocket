@@ -10,9 +10,11 @@ import akka.http.scaladsl.model.{HttpRequest, HttpResponse, Uri}
 import akka.http.scaladsl.model.HttpMethods._
 import akka.stream.ActorMaterializer
 
+
 import scala.io.StdIn
 
 object Server extends App {
+
 
   implicit val actorSystem = ActorSystem("akka-system")
   implicit val flowMaterializer = ActorMaterializer()
@@ -22,15 +24,18 @@ object Server extends App {
 
   import akka.http.scaladsl.server.Directives._
 
+  val messageSender = actorSystem.actorOf(MessageSender.props())
 
+  Receiver.main()
 
-  val echoService: Flow[Message, Message, _] = Flow[Message].map {
-    case TextMessage.Strict(txt) => TextMessage("ECHO: " + txt)
+  def echoService(id: Long): Flow[Message, Message, _] = Flow[Message].map {
+    case TextMessage.Strict(_) => TextMessage("ECHO: " + id)
     case _ => TextMessage("Message type unsupported")
   }
 
-  def flow: Flow[Message, Message, Any] = {
+  def flow(id: Long): Flow[Message, Message, Any] = {
     val client = actorSystem.actorOf(Props(classOf[ClientConnectionActor]))
+    messageSender ! MessageSender.NewConnection(id, client)
     val in = Sink.actorRef(client, 'sinkclose)
     val out = Source.actorRef(8, OverflowStrategy.fail).mapMaterializedValue { a ⇒
       client ! ('income → a)
@@ -44,11 +49,13 @@ object Server extends App {
       complete("Welcome to websocket server")
     }
   } ~
-    path("ws-echo") {
+    path("ws-echo" / LongNumber) { id =>
       get {
-        handleWebSocketMessages(flow)
+        handleWebSocketMessages(flow(id))
       }
     }
+
+
   val binding = Http().bindAndHandle(route, interface, port)
   println(s"Server is now online at http://$interface:$port\nPress RETURN to stop...")
   StdIn.readLine()

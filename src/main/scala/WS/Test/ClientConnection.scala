@@ -12,7 +12,9 @@ class ClientConnectionActor extends Actor {
     case 'sinkclose ⇒ context.stop(self)
 
     case TextMessage.Strict(t) ⇒ connection.foreach(_ ! TextMessage.Strict(s"echo $t"))
+    case message: String => connection.foreach(_ ! TextMessage.Strict(s"$message"))
     case _ ⇒ // ingone
+
   }
 
   override def preStart(): Unit = println("ClientConnectionActor created")
